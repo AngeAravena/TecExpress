@@ -9,8 +9,9 @@ object ServiceMapper {
             id = entity.id,
             title = entity.title,
             description = entity.description,
-            status = ServiceStatus.valueOf(entity.status)
+            status = ServiceStatus.valueOf(entity.status),
             //Conversion del status como String en la bd a enum para la app
+            userId = entity.userId // AÑADIMOS LA CONVERSIÓN
         )
     }
 
@@ -19,7 +20,8 @@ object ServiceMapper {
             id = service.id,
             title = service.title,
             description = service.description,
-            status = service.status.name
+            status = service.status.name,
+            userId = service.userId // AÑADIMOS LA CONVERSIÓN
         )
     }
 }
