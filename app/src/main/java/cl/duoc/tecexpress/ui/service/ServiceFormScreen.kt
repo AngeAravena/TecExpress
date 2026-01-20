@@ -45,7 +45,7 @@ fun ServiceFormScreen(
                 label = { Text("Título") },
                 modifier = Modifier.fillMaxWidth(),
                 isError = uiState.isTitleError,
-                supportingText = { if (uiState.isTitleError) Text("El título no puede estar vacío") else null },
+                supportingText = { if (uiState.isTitleError) Text("El título no puede estar vacío")},
                 trailingIcon = { if (uiState.isTitleError) Icon(Icons.Filled.Error, "Error", tint = Color.Red) }
             )
             Spacer(modifier = Modifier.height(16.dp))
