@@ -21,7 +21,16 @@ class AuthViewModel(private val repository: UserRepository) : ViewModel() {
     }
 
     fun onPasswordChange(password: String) {
-        _uiState.update { it.copy(password = password, error = null) }
+        val digitCount = password.count { it.isDigit() }
+        val letterCount = password.count { it.isLetter() }
+        val isValid = digitCount >= 3 && letterCount >= 3
+        _uiState.update {
+            it.copy(
+                password = password,
+                error = null,
+                isPasswordValid = isValid
+            )
+        }
     }
 
     fun registerUser() {
@@ -33,14 +42,18 @@ class AuthViewModel(private val repository: UserRepository) : ViewModel() {
             return
         }
 
+        if (!_uiState.value.isPasswordValid) {
+            _uiState.update { it.copy(error = "La contraseña debe tener al menos 3 letras y 3 números") }
+            return
+        }
+
         viewModelScope.launch {
             if (repository.findByUsername(username) != null) {
                 _uiState.update { it.copy(error = "El nombre de usuario ya existe") }
                 return@launch
             }
             
-            // TODO: Añadir librería de hashing y usarla aquí
-            val passwordHash = password // Por ahora, guardamos en texto plano
+            val passwordHash = password 
 
             val newUser = UserEntity(username = username, passwordHash = passwordHash)
             repository.insert(newUser)
@@ -61,7 +74,7 @@ class AuthViewModel(private val repository: UserRepository) : ViewModel() {
             val user = repository.findByUsername(username)
             if (user == null) {
                 _uiState.update { it.copy(error = "El usuario no existe") }
-            } else if (user.passwordHash != password) { // TODO: Comparar hashes, no texto plano
+            } else if (user.passwordHash != password) {
                 _uiState.update { it.copy(error = "Contraseña incorrecta") }
             } else {
                 _uiState.update { it.copy(loginSuccess = true) }
@@ -75,5 +88,6 @@ data class AuthUiState(
     val password: String = "",
     val error: String? = null,
     val registrationSuccess: Boolean = false,
-    val loginSuccess: Boolean = false
+    val loginSuccess: Boolean = false,
+    val isPasswordValid: Boolean = false
 )

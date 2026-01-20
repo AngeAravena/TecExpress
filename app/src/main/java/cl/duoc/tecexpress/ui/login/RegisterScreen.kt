@@ -11,6 +11,7 @@ import androidx.compose.foundation.layout.padding
 import androidx.compose.material3.Button
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.OutlinedTextField
+import androidx.compose.material3.OutlinedTextFieldDefaults
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
@@ -18,6 +19,7 @@ import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.text.input.PasswordVisualTransformation
 import androidx.compose.ui.unit.dp
@@ -51,31 +53,61 @@ fun RegisterScreen(
     ) {
         Text("Registro de Usuario", style = MaterialTheme.typography.headlineMedium)
         Spacer(modifier = Modifier.height(32.dp))
+        
         OutlinedTextField(
             value = uiState.username,
             onValueChange = { viewModel.onUsernameChange(it) },
             label = { Text("Nombre de Usuario") },
             modifier = Modifier.fillMaxWidth(),
-            isError = uiState.error != null
+            isError = uiState.error != null && uiState.username.isEmpty()
         )
+        
         Spacer(modifier = Modifier.height(16.dp))
+        
+        // Lógica de colores para la contraseña
+        val isPasswordEmpty = uiState.password.isEmpty()
+        val passwordColor = if (isPasswordEmpty) {
+            MaterialTheme.colorScheme.outline // Color gris/normal por defecto
+        } else if (uiState.isPasswordValid) {
+            Color(0xFF4CAF50) // Verde
+        }else if (uiState.password.count { it.isDigit() } >= 2 && uiState.password.count { it.isLetter() } >= 2){
+            Color(0xFFFBC02D) // Amarillo
+        }
+        else {
+            Color.Red // Rojo
+        }
+
         OutlinedTextField(
             value = uiState.password,
             onValueChange = { viewModel.onPasswordChange(it) },
-            label = { Text("Contraseña") },
+            label = { Text("Contraseña (min. 3 letras y 3 números)") },
             modifier = Modifier.fillMaxWidth(),
-            isError = uiState.error != null,
-            visualTransformation = PasswordVisualTransformation()
+            visualTransformation = PasswordVisualTransformation(),
+            colors = OutlinedTextFieldDefaults.colors(
+                focusedBorderColor = passwordColor,
+                unfocusedBorderColor = passwordColor,
+                focusedLabelColor = passwordColor,
+                unfocusedLabelColor = passwordColor
+            )
         )
+
         uiState.error?.let {
             Spacer(modifier = Modifier.height(8.dp))
             Text(text = it, color = MaterialTheme.colorScheme.error)
         }
+        
         Spacer(modifier = Modifier.height(32.dp))
-        Button(onClick = { viewModel.registerUser() }, modifier = Modifier.fillMaxWidth()) {
+        
+        Button(
+            onClick = { viewModel.registerUser() }, 
+            modifier = Modifier.fillMaxWidth(),
+            enabled = uiState.isPasswordValid && uiState.username.isNotEmpty()
+        ) {
             Text("Registrarme")
         }
+        
         Spacer(modifier = Modifier.height(8.dp))
+        
         Button(onClick = onBackToLogin, modifier = Modifier.fillMaxWidth()) {
             Text("Volver a Inicio")
         }
