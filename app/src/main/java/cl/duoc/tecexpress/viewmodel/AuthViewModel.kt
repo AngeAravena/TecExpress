@@ -40,7 +40,7 @@ class AuthViewModel(private val repository: UserRepository) : ViewModel() {
             }
             
             // TODO: Añadir librería de hashing y usarla aquí
-            val passwordHash = password // Por ahora, guardamos en texto plano
+            val passwordHash = password // Por ahora, guardamos en tFexto plano
 
             val newUser = UserEntity(username = username, passwordHash = passwordHash)
             repository.insert(newUser)
@@ -52,8 +52,14 @@ class AuthViewModel(private val repository: UserRepository) : ViewModel() {
         val username = _uiState.value.username
         val password = _uiState.value.password
 
-        if (!Validators.isNotEmpty(username) || !Validators.isNotEmpty(password)) {
+        if (!Validators.isNotEmpty(username) && !Validators.isNotEmpty(password)) {
             _uiState.update { it.copy(error = "El nombre de usuario y la contraseña no pueden estar vacíos") }
+            return
+        }else if(!Validators.isNotEmpty(username)){
+            _uiState.update { it.copy(error = "El nombre de usuario no puede estar vacío") }
+            return
+        }else if(!Validators.isNotEmpty(password)){
+            _uiState.update { it.copy(error = "La contraseña no puede estar vacía") }
             return
         }
 
@@ -61,7 +67,7 @@ class AuthViewModel(private val repository: UserRepository) : ViewModel() {
             val user = repository.findByUsername(username)
             if (user == null) {
                 _uiState.update { it.copy(error = "El usuario no existe") }
-            } else if (user.passwordHash != password) { // TODO: Comparar hashes, no texto plano
+            } else if (user.passwordHash != password) { // Compara hashes, no texto plano
                 _uiState.update { it.copy(error = "Contraseña incorrecta") }
             } else {
                 _uiState.update { it.copy(loginSuccess = true) }

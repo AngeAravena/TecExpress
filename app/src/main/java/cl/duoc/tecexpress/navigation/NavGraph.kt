@@ -9,12 +9,16 @@ import cl.duoc.tecexpress.ui.login.LoginScreen
 import cl.duoc.tecexpress.ui.login.RegisterScreen
 import cl.duoc.tecexpress.ui.service.ServiceFormScreen
 import cl.duoc.tecexpress.ui.service.ServiceScreen
+import cl.duoc.tecexpress.ui.splash.SplashScreen
 
 @Composable
 fun NavGraph(app: TecExpressApplication) {
     val navController = rememberNavController()
 
-    NavHost(navController = navController, startDestination = "login") { // La app empieza en el login
+    NavHost(navController = navController, startDestination = "splash") { // La app empieza en el login
+        composable("splash") {
+            SplashScreen(navController = navController)
+        }
         composable("login") {
             LoginScreen(
                 app = app, // Pasamos la app
@@ -43,5 +47,7 @@ fun NavGraph(app: TecExpressApplication) {
                 onSave = { navController.popBackStack() }
             )
         }
+
+
     }
 }

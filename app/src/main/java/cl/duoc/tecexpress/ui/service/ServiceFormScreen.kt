@@ -52,10 +52,9 @@ fun ServiceFormScreen(
             OutlinedTextField(
                 value = uiState.description,
                 onValueChange = { viewModel.onDescriptionChange(it) },
-                label = { Text("Descripción") },
+                label = { Text("Detalles adicionales") },
                 modifier = Modifier.fillMaxWidth(),
                 isError = uiState.isDescriptionError,
-                supportingText = { if (uiState.isDescriptionError) Text("La descripción no puede estar vacía") else null },
                 trailingIcon = { if (uiState.isDescriptionError) Icon(Icons.Filled.Error, "Error", tint = Color.Red) }
             )
             Spacer(modifier = Modifier.height(16.dp))
