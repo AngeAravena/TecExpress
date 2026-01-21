@@ -14,9 +14,6 @@ import cl.duoc.tecexpress.viewmodel.ServiceVM
 class AppContainer(private val context: Context) {
 
     private val database by lazy { TecExpressDatabase.getDatabase(context) }
-class AppContainer(context: Context) {
-
-    private val database = TecExpressDatabase.getDatabase(context)
     private val serviceRepository by lazy { ServiceRepository(database.serviceDao()) }
     private val userRepository by lazy { UserRepository(database.userDao()) }
     private val notificationHelper by lazy { NotificationHelper(context) }
@@ -29,16 +26,27 @@ class AppContainer(context: Context) {
         override fun <T : ViewModel> create(modelClass: Class<T>): T {
             return when {
                 modelClass.isAssignableFrom(ServiceVM::class.java) -> {
-                    ServiceVM(serviceRepository, notificationHelper, userRepository, authViewModel) as T
-                    ServiceVM(serviceRepository) as T
+                    ServiceVM(
+                        serviceRepository,
+                        notificationHelper,
+                        userRepository,
+                        authViewModel
+                    ) as T
                 }
+
                 modelClass.isAssignableFrom(AuthViewModel::class.java) -> {
                     authViewModel as T
                 }
+
                 modelClass.isAssignableFrom(AdminViewModel::class.java) -> {
-                    AdminViewModel(serviceRepository, userRepository, notificationHelper, authViewModel) as T
-                    AuthViewModel(userRepository) as T
+                    AdminViewModel(
+                        serviceRepository,
+                        userRepository,
+                        notificationHelper,
+                        authViewModel
+                    ) as T
                 }
+
                 else -> throw IllegalArgumentException("Unknown ViewModel class: ${modelClass.name}")
             }
         }
