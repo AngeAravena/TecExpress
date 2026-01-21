@@ -77,9 +77,6 @@ class AuthViewModel(private val repository: UserRepository) : ViewModel() {
         }
     }
 
-    fun onRegistrationComplete() {
-        _uiState.update { it.copy(registrationSuccess = false, username = "", password = "", error = null, isPasswordValid = false) }
-    }
 
     fun loginUser() {
         val username = _uiState.value.username.trim().lowercase()

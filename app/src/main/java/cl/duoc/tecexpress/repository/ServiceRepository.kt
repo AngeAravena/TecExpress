@@ -8,12 +8,10 @@ import kotlinx.coroutines.flow.map
 
 class ServiceRepository(private val dao: ServiceDao) {
 
-    // Este método será para el admin en el futuro
     val allServices: Flow<List<Service>> = dao.getAll().map {
         it.map(ServiceMapper::fromEntity)
     }
 
-    // Nuevo método para obtener servicios de un usuario específico
     fun getServicesForUser(userId: Long): Flow<List<Service>> {
         return dao.getServicesForUser(userId).map {
             it.map(ServiceMapper::fromEntity)
