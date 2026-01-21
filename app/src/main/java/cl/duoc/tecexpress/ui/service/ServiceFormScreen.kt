@@ -89,7 +89,7 @@ fun ServiceFormScreen(
                         onValueChange = {},
                         readOnly = true,
                         trailingIcon = { ExposedDropdownMenuDefaults.TrailingIcon(expanded = serviceExpanded) },
-                        modifier = Modifier.fillMaxWidth(),
+                        modifier = Modifier.fillMaxWidth().menuAnchor(),
                         isError = uiState.isServiceError
                     )
                     ExposedDropdownMenu(
@@ -120,7 +120,7 @@ fun ServiceFormScreen(
                             onValueChange = {},
                             readOnly = true,
                             trailingIcon = { ExposedDropdownMenuDefaults.TrailingIcon(expanded = osExpanded) },
-                            modifier = Modifier.fillMaxWidth()
+                            modifier = Modifier.fillMaxWidth().menuAnchor()
                         )
                         ExposedDropdownMenu(
                             expanded = osExpanded,
