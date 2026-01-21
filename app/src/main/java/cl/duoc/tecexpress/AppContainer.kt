@@ -23,6 +23,7 @@ class AppContainer(private val context: Context) {
     }
 
     val viewModelFactory = object : ViewModelProvider.Factory {
+        @Suppress("UNCHECKED_CAST")
         override fun <T : ViewModel> create(modelClass: Class<T>): T {
             return when {
                 modelClass.isAssignableFrom(ServiceVM::class.java) -> {

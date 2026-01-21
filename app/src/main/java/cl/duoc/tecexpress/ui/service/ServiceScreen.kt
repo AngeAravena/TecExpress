@@ -40,7 +40,7 @@ import cl.duoc.tecexpress.viewmodel.ServiceVM
 @Composable
 fun ServiceScreen(
     app: TecExpressApplication,
-    authViewModel: AuthViewModel, // Receive AuthViewModel
+    authViewModel: AuthViewModel, // Recibe AuthViewModel
     onAddService: () -> Unit
 ) {
     val viewModel: ServiceVM = viewModel(factory = app.appContainer.viewModelFactory)
@@ -53,8 +53,8 @@ fun ServiceScreen(
             contentDescription = "Background",
             modifier = Modifier
                 .fillMaxSize()
-                .alpha(0.2f), // Apply transparency
-            contentScale = ContentScale.Crop // Crop to fill the screen
+                .alpha(0.2f), // aplica transparency
+            contentScale = ContentScale.Crop
         )
         Box(modifier = Modifier.fillMaxSize().background(Color.Blue.copy(alpha = 0.1f)))
         Scaffold(

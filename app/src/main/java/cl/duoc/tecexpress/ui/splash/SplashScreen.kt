@@ -18,7 +18,7 @@ import kotlinx.coroutines.delay
 @Composable
 fun SplashScreen(navController: NavController) {
     LaunchedEffect(key1 = true) {
-        delay(2000) // Wait for 2 seconds
+        delay(2000) // 2000 ms de espera
         navController.navigate("login") {
             popUpTo("splash") { inclusive = true }
         }
@@ -28,9 +28,8 @@ fun SplashScreen(navController: NavController) {
         modifier = Modifier.fillMaxSize(),
         contentAlignment = Alignment.Center
     ) {
-        // You can replace this with your own logo
         Image(
-            painter = painterResource(id = R.drawable.logo_init),
+            painter = painterResource(id = R.drawable.logo_init),//direccion del logo de la empresa
             contentDescription = "Logo",
             modifier = Modifier.clip(CircleShape)
         )

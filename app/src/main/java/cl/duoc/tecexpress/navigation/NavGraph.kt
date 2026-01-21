@@ -19,7 +19,7 @@ fun NavGraph(app: TecExpressApplication) {
     val navController = rememberNavController()
     val authViewModel: AuthViewModel = viewModel(factory = app.appContainer.viewModelFactory)
 
-    NavHost(navController = navController, startDestination = "splash") { // La app empieza en el login
+    NavHost(navController = navController, startDestination = "splash") { // La app empieza con animacion
         composable("splash") {
             SplashScreen(navController = navController)
         }

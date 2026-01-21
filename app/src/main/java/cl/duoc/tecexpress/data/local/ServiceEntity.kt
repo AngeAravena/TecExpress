@@ -23,7 +23,6 @@ data class ServiceEntity(
     val os: String? = null, // Nullable para servicios no móviles
     val category: ServiceCategory,
     val status: String,
-    //En la base de datos se almacena como String(ServiceEntity)
     //En la app se almacena como enum (ServiceStatus)
     //ServiceMapper convierte entre ambos formatos
     //Status queda sellado a 3 estados (pending, in_progress, completed)

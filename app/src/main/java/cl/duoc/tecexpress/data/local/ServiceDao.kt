@@ -22,7 +22,7 @@ interface ServiceDao {
     @Query("SELECT * FROM services WHERE userId > 0 ORDER BY id DESC")
     fun getAll(): Flow<List<ServiceEntity>>
 
-    // CORRECCIÓN: Usar SELECT * para que Room pueda construir el objeto ServiceEntity completo.
+    // Select con where en userId -1 para instancias las plantillas de servicios.
     @Query("SELECT * FROM services WHERE userId = -1")
     fun getServiceTemplates(): Flow<List<ServiceEntity>>
 }
