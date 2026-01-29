@@ -19,7 +19,7 @@ fun NavGraph(app: TecExpressApplication) {
     val navController = rememberNavController()
     val authViewModel: AuthViewModel = viewModel(factory = app.appContainer.viewModelFactory)
 
-    NavHost(navController = navController, startDestination = "splash") { // La app empieza con animacion
+    NavHost(navController = navController, startDestination = "splash") {
         composable("splash") {
             SplashScreen(navController = navController)
         }
@@ -28,7 +28,7 @@ fun NavGraph(app: TecExpressApplication) {
                 viewModel = authViewModel,
                 onLogin = { isAdmin ->
                     val route = if (isAdmin) "admin_screen" else "service_list"
-                    navController.navigate(route) { popUpTo("login") { inclusive = true } } // Navega y limpia el stack
+                    navController.navigate(route) { popUpTo("login") { inclusive = true } }
                 },
                 onRegister = { navController.navigate("register") }
             )
@@ -36,15 +36,20 @@ fun NavGraph(app: TecExpressApplication) {
         composable("register") {
             RegisterScreen(
                 viewModel = authViewModel,
-                onRegisterSuccess = { navController.popBackStack() }, // Vuelve al login
-                onBackToLogin = { navController.popBackStack() } // Vuelve al login
+                onRegisterSuccess = { navController.popBackStack() },
+                onBackToLogin = { navController.popBackStack() }
             )
         }
         composable("service_list") {
             ServiceScreen(
                 app = app,
                 authViewModel = authViewModel,
-                onAddService = { navController.navigate("service_form") }
+                onAddService = { navController.navigate("service_form") },
+                onLogout = {
+                    navController.navigate("login") {
+                        popUpTo(0) { inclusive = true }
+                    }
+                }
             )
         }
         composable("service_form") {
@@ -54,7 +59,15 @@ fun NavGraph(app: TecExpressApplication) {
             )
         }
         composable("admin_screen") {
-            AdminScreen(app = app)
+            AdminScreen(
+                app = app,
+                authViewModel = authViewModel,
+                onLogout = {
+                    navController.navigate("login") {
+                        popUpTo(0) { inclusive = true }
+                    }
+                }
+            )
         }
     }
 }

@@ -39,8 +39,19 @@ class AdminViewModel(
         }
     }
 
-    fun onFormFieldChange(serviceType: String = _uiState.value.serviceType, description: String = _uiState.value.description, userId: String = _uiState.value.userId) {
-        _uiState.update { it.copy(serviceType = serviceType, description = description, userId = userId, error = null) }
+    fun onFormFieldChange(
+        serviceType: String = _uiState.value.serviceType,
+        description: String = _uiState.value.description,
+        userId: String = _uiState.value.userId,
+        imageUrl: String = _uiState.value.imageUrl
+    ) {
+        _uiState.update { it.copy(
+            serviceType = serviceType,
+            description = description,
+            userId = userId,
+            imageUrl = imageUrl,
+            error = null
+        ) }
     }
 
     fun startEditing(service: Service) {
@@ -49,13 +60,14 @@ class AdminViewModel(
                 editingService = service,
                 serviceType = service.serviceType,
                 description = service.description,
-                userId = service.userId.toString()
+                userId = service.userId.toString(),
+                imageUrl = service.imageUrl ?: ""
             )
         }
     }
 
     fun stopEditing() {
-        _uiState.update { it.copy(editingService = null, serviceType = "", description = "", userId = "", error = null) }
+        _uiState.update { it.copy(editingService = null, serviceType = "", description = "", userId = "", imageUrl = "", error = null) }
     }
 
     fun saveService() {
@@ -70,14 +82,16 @@ class AdminViewModel(
                 serviceType = _uiState.value.serviceType,
                 description = _uiState.value.description,
                 userId = userIdLong,
-                category = _uiState.value.category
+                category = _uiState.value.category,
+                imageUrl = _uiState.value.imageUrl.takeIf { it.isNotBlank() }
             ) ?: Service(
                 serviceType = _uiState.value.serviceType,
                 description = _uiState.value.description,
                 userId = userIdLong,
-                price = 0.0, // Precio base para nuevos servicios, se puede ajustar
+                price = 0.0,
                 status = ServiceStatus.PENDING,
-                category = _uiState.value.category
+                category = _uiState.value.category,
+                imageUrl = _uiState.value.imageUrl.takeIf { it.isNotBlank() }
             )
 
             serviceRepository.insert(serviceToSave)
@@ -112,6 +126,7 @@ data class AdminUiState(
     val serviceType: String = "",
     val description: String = "",
     val userId: String = "",
+    val imageUrl: String = "",
     val error: String? = null,
     val editingService: Service? = null,
     val category: ServiceCategory = ServiceCategory.OTHER
