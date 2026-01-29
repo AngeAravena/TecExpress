@@ -19,7 +19,7 @@ class Converters {
     fun toCategory(value: String) = enumValueOf<ServiceCategory>(value)
 }
 
-@Database(entities = [ServiceEntity::class, UserEntity::class], version = 8, exportSchema = false)
+@Database(entities = [ServiceEntity::class, UserEntity::class], version = 11, exportSchema = false)
 @TypeConverters(Converters::class)
 abstract class TecExpressDatabase : RoomDatabase() {
 
@@ -58,11 +58,17 @@ abstract class TecExpressDatabase : RoomDatabase() {
                 if (count == 0) {
                     db.beginTransaction()
                     try {
-                        db.execSQL("INSERT INTO services (serviceType, description, price, category, status, userId) VALUES ('Limpieza de PC de Escritorio', '', 30000.0, 'PC', 'PENDING', -1)")
-                        db.execSQL("INSERT INTO services (serviceType, description, price, category, status, userId) VALUES ('Limpieza interna de móviles', '', 20000.0, 'MOBILE', 'PENDING', -1)")
-                        db.execSQL("INSERT INTO services (serviceType, description, price, category, status, userId) VALUES ('Cambio de batería', '', 40000.0, 'BATTERY', 'PENDING', -1)")
-                        db.execSQL("INSERT INTO services (serviceType, description, price, category, status, userId) VALUES ('Formateo de PC', '', 25000.0, 'PC', 'PENDING', -1)")
-                        db.execSQL("INSERT INTO services (serviceType, description, price, category, status, userId) VALUES ('Instalación de Software', '', 15000.0, 'OTHER', 'PENDING', -1)")
+                        val pcImageUrl = "https://firebasestorage.googleapis.com/v0/b/appmoviles-cd8ea.firebasestorage.app/o/limpiar-ordenador-sobremesa-por-dentro.webp?alt=media&token=615e0daa-d91d-43db-802b-3a42318543d0"
+                        val linternamovilUrl = "https://firebasestorage.googleapis.com/v0/b/appmoviles-cd8ea.firebasestorage.app/o/limpieza%20interna%20movil.webp?alt=media&token=72f6e3e9-697c-40e2-b1b7-d11aef894222"
+                        val cambiobateriaUrl = "https://firebasestorage.googleapis.com/v0/b/appmoviles-cd8ea.firebasestorage.app/o/Cambio%20de%20bateria.jpg?alt=media&token=e11a7342-6790-4fd8-8eeb-1bdecacbcfff"
+                        val formateopcUrl = "https://firebasestorage.googleapis.com/v0/b/appmoviles-cd8ea.firebasestorage.app/o/formateo%20pc.webp?alt=media&token=d2df4209-777c-4e05-bb13-688dbdf782e5"
+                        val instalacionsoftwareUrl = "https://firebasestorage.googleapis.com/v0/b/appmoviles-cd8ea.firebasestorage.app/o/instalacion%20software.jpg?alt=media&token=06a4aeab-d05b-4d19-bb93-06415f41e3cb"
+                        
+                        db.execSQL("INSERT INTO services (serviceType, description, price, category, status, userId, imageUrl) VALUES ('Limpieza de PC de Escritorio', '', 30000.0, 'PC', 'PENDING', -1, '$pcImageUrl')")
+                        db.execSQL("INSERT INTO services (serviceType, description, price, category, status, userId, imageUrl) VALUES ('Limpieza interna de móviles', '', 20000.0, 'MOBILE', 'PENDING', -1, '$linternamovilUrl')")
+                        db.execSQL("INSERT INTO services (serviceType, description, price, category, status, userId, imageUrl) VALUES ('Cambio de batería', '', 40000.0, 'BATTERY', 'PENDING', -1, '$cambiobateriaUrl')")
+                        db.execSQL("INSERT INTO services (serviceType, description, price, category, status, userId, imageUrl) VALUES ('Formateo de PC', '', 25000.0, 'PC', 'PENDING', -1, '$formateopcUrl')")
+                        db.execSQL("INSERT INTO services (serviceType, description, price, category, status, userId, imageUrl) VALUES ('Instalación de Software', '', 15000.0, 'OTHER', 'PENDING', -1, '$instalacionsoftwareUrl')")
                         db.setTransactionSuccessful()
                     } finally {
                         db.endTransaction()

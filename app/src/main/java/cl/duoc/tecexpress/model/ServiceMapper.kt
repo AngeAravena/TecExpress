@@ -13,7 +13,8 @@ object ServiceMapper {
             os = entity.os,
             category = entity.category,
             status = ServiceStatus.valueOf(entity.status),
-            userId = entity.userId
+            userId = entity.userId,
+            imageUrl = entity.imageUrl
         )
     }
 
@@ -26,7 +27,8 @@ object ServiceMapper {
             os = service.os,
             category = service.category,
             status = service.status.name,
-            userId = service.userId
+            userId = service.userId,
+            imageUrl = service.imageUrl
         )
     }
 }
