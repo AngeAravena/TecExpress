@@ -2,22 +2,28 @@ package cl.duoc.tecexpress.viewmodel
 
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
+import cl.duoc.tecexpress.data.UserPreferencesRepository
 import cl.duoc.tecexpress.data.local.UserEntity
 import cl.duoc.tecexpress.repository.UserRepository
 import cl.duoc.tecexpress.util.Validators
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.asStateFlow
+import kotlinx.coroutines.flow.first
 import kotlinx.coroutines.flow.update
 import kotlinx.coroutines.launch
 
-class AuthViewModel(private val repository: UserRepository) : ViewModel() {
+class AuthViewModel(
+    private val repository: UserRepository,
+    private val userPreferencesRepository: UserPreferencesRepository
+) : ViewModel() {
 
     private val _uiState = MutableStateFlow(AuthUiState())
     val uiState: StateFlow<AuthUiState> = _uiState.asStateFlow()
 
     init {
         createSuperUser()
+        tryAutoLogin()
     }
 
     private fun createSuperUser() {
@@ -77,7 +83,6 @@ class AuthViewModel(private val repository: UserRepository) : ViewModel() {
         }
     }
 
-
     fun loginUser() {
         val username = _uiState.value.username.trim().lowercase()
         val password = _uiState.value.password.trim().lowercase()
@@ -95,18 +100,44 @@ class AuthViewModel(private val repository: UserRepository) : ViewModel() {
                 _uiState.update { it.copy(error = "Contraseña incorrecta") }
             } else {
                 _uiState.update { it.copy(loginSuccess = true, isAdmin = user.isAdmin, currentUser = user) }
+                userPreferencesRepository.saveUser(username, password)
             }
         }
     }
 
     fun logout() {
-        _uiState.update { AuthUiState() } // Resetea todo el estado, incluyendo el usuario actual
+        viewModelScope.launch {
+            userPreferencesRepository.clearUser()
+            _uiState.update { AuthUiState() } // Resetea todo el estado, incluyendo el usuario actual
+        }
+    }
+
+    private fun tryAutoLogin() {
+        viewModelScope.launch {
+            val (username, password) = userPreferencesRepository.storedUser.first()
+            if (username.isNotEmpty() && password.isNotEmpty()) {
+                _uiState.update { it.copy(username = username, password = password) }
+                loginUser()
+            }
+        }
     }
 
     fun onLoginComplete() {
         _uiState.update { it.copy(loginSuccess = false) }
     }
+
+    fun updateProfileImage(userId: Long, imageUri: String) {
+        viewModelScope.launch {
+            val user = repository.findById(userId)
+            if (user != null) {
+                val updatedUser = user.copy(profileImageUri = imageUri)
+                repository.update(updatedUser)
+                _uiState.update { it.copy(currentUser = updatedUser) }
+            }
+        }
+    }
 }
+
 
 data class AuthUiState(
     val username: String = "",

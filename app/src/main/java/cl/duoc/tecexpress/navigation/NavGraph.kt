@@ -9,6 +9,7 @@ import cl.duoc.tecexpress.TecExpressApplication
 import cl.duoc.tecexpress.ui.admin.AdminScreen
 import cl.duoc.tecexpress.ui.login.LoginScreen
 import cl.duoc.tecexpress.ui.login.RegisterScreen
+import cl.duoc.tecexpress.ui.profile.ProfileScreen
 import cl.duoc.tecexpress.ui.service.ServiceFormScreen
 import cl.duoc.tecexpress.ui.service.ServiceScreen
 import cl.duoc.tecexpress.ui.splash.SplashScreen
@@ -21,7 +22,7 @@ fun NavGraph(app: TecExpressApplication) {
 
     NavHost(navController = navController, startDestination = "splash") {
         composable("splash") {
-            SplashScreen(navController = navController)
+            SplashScreen(navController = navController, authViewModel = authViewModel)
         }
         composable("login") {
             LoginScreen(
@@ -49,7 +50,8 @@ fun NavGraph(app: TecExpressApplication) {
                     navController.navigate("login") {
                         popUpTo(0) { inclusive = true }
                     }
-                }
+                },
+                onProfile = { navController.navigate("profile") }
             )
         }
         composable("service_form") {
@@ -66,8 +68,13 @@ fun NavGraph(app: TecExpressApplication) {
                     navController.navigate("login") {
                         popUpTo(0) { inclusive = true }
                     }
-                }
+                },
+                onProfile = { navController.navigate("profile") },
+                onAdminClick = {}
             )
+        }
+        composable("profile") {
+            ProfileScreen(authViewModel = authViewModel, onBack = { navController.popBackStack() })
         }
     }
 }

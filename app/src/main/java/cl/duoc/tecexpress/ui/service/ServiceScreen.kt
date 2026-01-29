@@ -2,6 +2,7 @@ package cl.duoc.tecexpress.ui.service
 
 import androidx.compose.foundation.Image
 import androidx.compose.foundation.background
+import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.items
@@ -10,10 +11,15 @@ import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.automirrored.filled.ExitToApp
 import androidx.compose.material.icons.filled.Add
 import androidx.compose.material.icons.filled.ImageNotSupported
+import androidx.compose.material.icons.filled.Menu
 import androidx.compose.material3.*
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
+import androidx.compose.runtime.mutableStateOf
+import androidx.compose.runtime.remember
+import androidx.compose.runtime.rememberCoroutineScope
+import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.alpha
@@ -26,9 +32,11 @@ import androidx.lifecycle.viewmodel.compose.viewModel
 import cl.duoc.tecexpress.R
 import cl.duoc.tecexpress.TecExpressApplication
 import cl.duoc.tecexpress.model.Service
+import cl.duoc.tecexpress.ui.components.ConfirmationDialog
 import cl.duoc.tecexpress.viewmodel.AuthViewModel
 import cl.duoc.tecexpress.viewmodel.ServiceVM
 import coil.compose.SubcomposeAsyncImage
+import kotlinx.coroutines.launch
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
@@ -36,59 +44,104 @@ fun ServiceScreen(
     app: TecExpressApplication,
     authViewModel: AuthViewModel,
     onAddService: () -> Unit,
-    onLogout: () -> Unit
+    onLogout: () -> Unit,
+    onProfile: () -> Unit
 ) {
     val viewModel: ServiceVM = viewModel(factory = app.appContainer.viewModelFactory)
     val services by viewModel.allServices.collectAsState()
     val authState by authViewModel.uiState.collectAsState()
+    val drawerState = rememberDrawerState(initialValue = DrawerValue.Closed)
+    val scope = rememberCoroutineScope()
+    var showLogoutDialog by remember { mutableStateOf(false) }
 
-    Box(modifier = Modifier.fillMaxSize()) {
-        Image(
-            painter = painterResource(id = R.drawable.logo_init),
-            contentDescription = "Background",
-            modifier = Modifier
-                .fillMaxSize()
-                .alpha(0.2f),
-            contentScale = ContentScale.Crop
-        )
-        Box(modifier = Modifier.fillMaxSize().background(Color.Blue.copy(alpha = 0.1f)))
-        Scaffold(
-            containerColor = Color.Transparent,
-            topBar = {
-                TopAppBar(
-                    title = { Text("Servicios de ${authState.currentUser?.username ?: ""}") },
-                    actions = {
-                        IconButton(onClick = {
-                            authViewModel.logout()
-                            onLogout()
-                        }) {
-                            Icon(
-                                imageVector = Icons.AutoMirrored.Filled.ExitToApp,
-                                contentDescription = "Cerrar Sesión",
-                                tint = MaterialTheme.colorScheme.primary
-                            )
-                        }
-                    },
-                    colors = TopAppBarDefaults.topAppBarColors(
-                        containerColor = Color.Transparent
-                    )
+    ConfirmationDialog(
+        show = showLogoutDialog,
+        onDismiss = { showLogoutDialog = false },
+        onConfirm = {
+            showLogoutDialog = false
+            authViewModel.logout()
+            onLogout()
+        },
+        title = "¿Cerrar sesión?",
+        message = "Tu sesión se cerrará.",
+        confirmButtonColor = MaterialTheme.colorScheme.primary
+    )
+
+    ModalNavigationDrawer(
+        drawerState = drawerState,
+        drawerContent = {
+            ModalDrawerSheet {
+                Spacer(modifier = Modifier.height(12.dp))
+                NavigationDrawerItem(
+                    label = { Text("Perfil") },
+                    selected = false,
+                    onClick = onProfile
                 )
-            },
-            floatingActionButton = {
-                FloatingActionButton(onClick = onAddService) {
-                    Icon(Icons.Filled.Add, contentDescription = "Agregar Servicio")
-                }
+                NavigationDrawerItem(
+                    label = { Text("Servicios") },
+                    selected = false,
+                    onClick = { /*TODO*/ }
+                )
+                Spacer(modifier = Modifier.weight(1f))
+                NavigationDrawerItem(
+                    label = { Text("Cerrar Sesión") },
+                    selected = false,
+                    onClick = { showLogoutDialog = true },
+                    icon = { Icon(Icons.AutoMirrored.Filled.ExitToApp, contentDescription = "Cerrar Sesión") }
+                )
             }
-        ) { paddingValues ->
-            LazyColumn(
+        }
+    ) {
+        Box(modifier = Modifier.fillMaxSize()) {
+            Image(
+                painter = painterResource(id = R.drawable.logo_init),
+                contentDescription = "Background",
                 modifier = Modifier
                     .fillMaxSize()
-                    .padding(paddingValues)
-                    .padding(horizontal = 8.dp),
-                verticalArrangement = Arrangement.spacedBy(8.dp)
-            ) {
-                items(services) { service ->
-                    ServiceItem(service = service)
+                    .alpha(0.2f),
+                contentScale = ContentScale.Crop
+            )
+            Box(modifier = Modifier.fillMaxSize().background(Color.Blue.copy(alpha = 0.1f)))
+            Scaffold(
+                containerColor = Color.Transparent,
+                topBar = {
+                    TopAppBar(
+                        title = { Text("Servicios de ${authState.currentUser?.username ?: ""}") },
+                        navigationIcon = {
+                            IconButton(onClick = {
+                                scope.launch {
+                                    drawerState.apply {
+                                        if (isClosed) open() else close()
+                                    }
+                                }
+                            }) {
+                                Icon(
+                                    imageVector = Icons.Default.Menu,
+                                    contentDescription = "Menu"
+                                )
+                            }
+                        },
+                        colors = TopAppBarDefaults.topAppBarColors(
+                            containerColor = Color.Transparent
+                        )
+                    )
+                },
+                floatingActionButton = {
+                    FloatingActionButton(onClick = onAddService) {
+                        Icon(Icons.Filled.Add, contentDescription = "Agregar Servicio")
+                    }
+                }
+            ) { paddingValues ->
+                LazyColumn(
+                    modifier = Modifier
+                        .fillMaxSize()
+                        .padding(paddingValues)
+                        .padding(horizontal = 8.dp),
+                    verticalArrangement = Arrangement.spacedBy(8.dp)
+                ) {
+                    items(services) { service ->
+                        ServiceItem(service = service)
+                    }
                 }
             }
         }

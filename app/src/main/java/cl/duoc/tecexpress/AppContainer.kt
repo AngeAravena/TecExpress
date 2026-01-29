@@ -3,6 +3,7 @@ package cl.duoc.tecexpress
 import android.content.Context
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.ViewModelProvider
+import cl.duoc.tecexpress.data.UserPreferencesRepository
 import cl.duoc.tecexpress.data.local.TecExpressDatabase
 import cl.duoc.tecexpress.repository.ServiceRepository
 import cl.duoc.tecexpress.repository.UserRepository
@@ -17,9 +18,10 @@ class AppContainer(private val context: Context) {
     private val serviceRepository by lazy { ServiceRepository(database.serviceDao()) }
     private val userRepository by lazy { UserRepository(database.userDao()) }
     private val notificationHelper by lazy { NotificationHelper(context) }
+    private val userPreferencesRepository by lazy { UserPreferencesRepository(context) }
 
     private val authViewModel: AuthViewModel by lazy {
-        AuthViewModel(userRepository)
+        AuthViewModel(userRepository, userPreferencesRepository)
     }
 
     val viewModelFactory = object : ViewModelProvider.Factory {
