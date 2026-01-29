@@ -13,6 +13,5 @@ data class ServiceEntity(
     val os: String? = null,
     val category: ServiceCategory,
     val status: String,
-    val userId: Long,
-    val imageUrl: String? = null
+    val userId: Long
 )

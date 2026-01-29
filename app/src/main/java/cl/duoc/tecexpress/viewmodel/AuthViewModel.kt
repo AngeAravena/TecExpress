@@ -99,10 +99,6 @@ class AuthViewModel(private val repository: UserRepository) : ViewModel() {
         }
     }
 
-    fun logout() {
-        _uiState.update { AuthUiState() } // Resetea todo el estado, incluyendo el usuario actual
-    }
-
     fun onLoginComplete() {
         _uiState.update { it.copy(loginSuccess = false) }
     }

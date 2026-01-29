@@ -10,6 +10,5 @@ data class Service(
     val os: String? = null,
     val category: ServiceCategory,
     val status: ServiceStatus,
-    val userId: Long,
-    val imageUrl: String? = null
+    val userId: Long
 )

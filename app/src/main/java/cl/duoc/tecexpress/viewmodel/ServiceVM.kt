@@ -79,8 +79,7 @@ class ServiceVM(
                 os = os,
                 category = selectedService.category,
                 status = ServiceStatus.PENDING,
-                userId = userId,
-                imageUrl = selectedService.imageUrl // Heredamos la URL de la imagen del template
+                userId = userId
             )
             serviceRepository.insert(newService)
 

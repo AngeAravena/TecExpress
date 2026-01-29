@@ -1,22 +1,40 @@
 package cl.duoc.tecexpress.ui.admin
 
-import android.util.Log
 import androidx.compose.foundation.Image
 import androidx.compose.foundation.background
 import androidx.compose.foundation.clickable
-import androidx.compose.foundation.layout.*
+import androidx.compose.foundation.layout.Arrangement
+import androidx.compose.foundation.layout.Box
+import androidx.compose.foundation.layout.Column
+import androidx.compose.foundation.layout.Row
+import androidx.compose.foundation.layout.Spacer
+import androidx.compose.foundation.layout.fillMaxSize
+import androidx.compose.foundation.layout.fillMaxWidth
+import androidx.compose.foundation.layout.height
+import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.items
-import androidx.compose.foundation.shape.RoundedCornerShape
-import androidx.compose.material.icons.Icons
-import androidx.compose.material.icons.automirrored.filled.ExitToApp
-import androidx.compose.material.icons.filled.ImageNotSupported
-import androidx.compose.material3.*
-import androidx.compose.runtime.*
-import androidx.compose.ui.Alignment
+import androidx.compose.material3.AlertDialog
+import androidx.compose.material3.Button
+import androidx.compose.material3.Card
+import androidx.compose.material3.DropdownMenu
+import androidx.compose.material3.DropdownMenuItem
+import androidx.compose.material3.ExperimentalMaterial3Api
+import androidx.compose.material3.MaterialTheme
+import androidx.compose.material3.OutlinedTextField
+import androidx.compose.material3.Scaffold
+import androidx.compose.material3.Text
+import androidx.compose.material3.TextButton
+import androidx.compose.material3.TopAppBar
+import androidx.compose.material3.TopAppBarDefaults
+import androidx.compose.runtime.Composable
+import androidx.compose.runtime.collectAsState
+import androidx.compose.runtime.getValue
+import androidx.compose.runtime.mutableStateOf
+import androidx.compose.runtime.remember
+import androidx.compose.runtime.setValue
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.alpha
-import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.res.painterResource
@@ -29,18 +47,12 @@ import cl.duoc.tecexpress.data.local.UserEntity
 import cl.duoc.tecexpress.model.Service
 import cl.duoc.tecexpress.model.ServiceStatus
 import cl.duoc.tecexpress.viewmodel.AdminViewModel
-import cl.duoc.tecexpress.viewmodel.AuthViewModel
-import coil.compose.SubcomposeAsyncImage
 
 enum class AdminView { SERVICES, USERS }
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
-fun AdminScreen(
-    app: TecExpressApplication,
-    authViewModel: AuthViewModel,
-    onLogout: () -> Unit
-) {
+fun AdminScreen(app: TecExpressApplication) {
     val viewModel: AdminViewModel = viewModel(factory = app.appContainer.viewModelFactory)
     val uiState by viewModel.uiState.collectAsState()
     val services by viewModel.allServices.collectAsState()
@@ -83,22 +95,7 @@ fun AdminScreen(
         Scaffold(
             containerColor = Color.Transparent,
             topBar = {
-                TopAppBar(
-                    title = { Text("Panel de Administrador") },
-                    actions = {
-                        IconButton(onClick = {
-                            authViewModel.logout()
-                            onLogout()
-                        }) {
-                            Icon(
-                                imageVector = Icons.AutoMirrored.Filled.ExitToApp,
-                                contentDescription = "Cerrar Sesión",
-                                tint = MaterialTheme.colorScheme.primary
-                            )
-                        }
-                    },
-                    colors = TopAppBarDefaults.topAppBarColors(containerColor = Color.Transparent)
-                )
+                TopAppBar(title = { Text("Panel de Administrador") }, colors = TopAppBarDefaults.topAppBarColors(containerColor = Color.Transparent))
             }
         ) { paddingValues ->
             Column(modifier = Modifier.fillMaxSize().padding(paddingValues).padding(16.dp)) {
@@ -154,68 +151,24 @@ fun UserList(users: List<UserEntity>) {
 @Composable
 fun ServiceItem(service: Service, viewModel: AdminViewModel, onStatusChange: (ServiceStatus) -> Unit, onDelete: () -> Unit) {
     var expanded by remember { mutableStateOf(false) }
-    Card(
-        modifier = Modifier.fillMaxWidth().padding(horizontal = 4.dp),
-        colors = CardDefaults.cardColors(containerColor = Color.White.copy(alpha = 0.9f))
-    ) {
-        Row(modifier = Modifier.padding(16.dp), verticalAlignment = Alignment.CenterVertically) {
-            
-            // LOG PARA DEBUG
-            LaunchedEffect(service.imageUrl) {
-                Log.d("CoilDebug", "Intentando cargar: ${service.imageUrl}")
-            }
-
-            SubcomposeAsyncImage(
-                model = service.imageUrl ?: "",
-                contentDescription = "Imagen",
-                modifier = Modifier
-                    .size(70.dp)
-                    .clip(RoundedCornerShape(8.dp))
-                    .background(Color.LightGray),
-                contentScale = ContentScale.Crop,
-                loading = { 
-                    Box(Modifier.fillMaxSize(), contentAlignment = Alignment.Center) {
-                        CircularProgressIndicator(modifier = Modifier.size(24.dp)) 
+    Card(modifier = Modifier.fillMaxWidth()) {
+        Column(modifier = Modifier.padding(16.dp)) {
+            Text("ID: ${service.id} | Tipo: ${service.serviceType}")
+            Text("Usuario ID: ${service.userId}")
+            Text("Descripción: ${service.description}")
+            Text("Estado: ${service.status}")
+            Row(modifier = Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.SpaceBetween) {
+                Box {
+                    Text("Cambiar estado", modifier = Modifier.clickable { expanded = true })
+                    DropdownMenu(expanded = expanded, onDismissRequest = { expanded = false }) {
+                        ServiceStatus.values().forEach { status ->
+                            DropdownMenuItem(text = { Text(status.name) }, onClick = { onStatusChange(status); expanded = false })
+                        }
                     }
-                },
-                error = { 
-                    Icon(Icons.Default.ImageNotSupported, null, Modifier.padding(16.dp), tint = Color.Gray)
                 }
-            )
-            
-            Spacer(modifier = Modifier.width(16.dp))
-
-            Column(modifier = Modifier.weight(1f)) {
-                Text(text = "ID: ${service.id} | ${service.serviceType}", style = MaterialTheme.typography.titleMedium, color = Color.Black)
-                Text(text = "Usuario ID: ${service.userId}", style = MaterialTheme.typography.bodySmall, color = Color.DarkGray)
-                Text(text = "Descripción: ${service.description}", style = MaterialTheme.typography.bodyMedium, color = Color.Black)
-                Text(text = "Estado: ${service.status}", style = MaterialTheme.typography.labelSmall, color = MaterialTheme.colorScheme.primary)
-                
-                Spacer(modifier = Modifier.height(12.dp))
-                
-                Row(modifier = Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.SpaceBetween, verticalAlignment = Alignment.CenterVertically) {
-                    Box {
-                        Text(
-                            text = "Cambiar estado", 
-                            modifier = Modifier.clickable { expanded = true },
-                            style = MaterialTheme.typography.labelLarge,
-                            color = MaterialTheme.colorScheme.secondary
-                        )
-                        DropdownMenu(expanded = expanded, onDismissRequest = { expanded = false }) {
-                            ServiceStatus.entries.forEach { status ->
-                                DropdownMenuItem(text = { Text(status.name) }, onClick = { onStatusChange(status); expanded = false })
-                            }
-                        }
-                    }
-
-                    Row(horizontalArrangement = Arrangement.spacedBy(8.dp)) {
-                        Button(onClick = { viewModel.startEditing(service) }, modifier = Modifier.height(36.dp), contentPadding = PaddingValues(horizontal = 12.dp)) {
-                            Text("Editar", style = MaterialTheme.typography.labelMedium)
-                        }
-                        Button(onClick = onDelete, colors = ButtonDefaults.buttonColors(containerColor = MaterialTheme.colorScheme.error), modifier = Modifier.height(36.dp), contentPadding = PaddingValues(horizontal = 12.dp)) {
-                            Text("Eliminar", style = MaterialTheme.typography.labelMedium)
-                        }
-                    }
+                Row(horizontalArrangement = Arrangement.spacedBy(8.dp)) {
+                    Button(onClick = { viewModel.startEditing(service) }) { Text("Editar") }
+                    Button(onClick = onDelete) { Text("Eliminar") }
                 }
             }
         }
@@ -244,8 +197,6 @@ fun CreateOrEditServiceForm(viewModel: AdminViewModel) {
         OutlinedTextField(value = uiState.description, onValueChange = { viewModel.onFormFieldChange(description = it) }, label = { Text("Descripción") }, modifier = Modifier.fillMaxWidth())
         Spacer(modifier = Modifier.height(8.dp))
         OutlinedTextField(value = uiState.userId, onValueChange = { viewModel.onFormFieldChange(userId = it) }, label = { Text("ID de Usuario") }, modifier = Modifier.fillMaxWidth())
-        Spacer(modifier = Modifier.height(8.dp))
-        OutlinedTextField(value = uiState.imageUrl, onValueChange = { viewModel.onFormFieldChange(imageUrl = it) }, label = { Text("URL de la Imagen (Firebase)") }, modifier = Modifier.fillMaxWidth())
         Spacer(modifier = Modifier.height(16.dp))
         Row(horizontalArrangement = Arrangement.spacedBy(8.dp)) {
             Button(onClick = { viewModel.saveService() }) { Text("Guardar") }
