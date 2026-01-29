@@ -19,4 +19,8 @@ class UserRepository(private val dao: UserDao) {
     suspend fun insert(user: UserEntity) {
         dao.insert(user)
     }
+
+    suspend fun update(user: UserEntity) {
+        dao.update(user)
+    }
 }

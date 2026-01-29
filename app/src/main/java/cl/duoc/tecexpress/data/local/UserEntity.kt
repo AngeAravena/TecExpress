@@ -13,5 +13,7 @@ data class UserEntity(
     val id: Long = 0,
     val username: String,
     val passwordHash: String,
-    val isAdmin: Boolean = false
+    val isAdmin: Boolean = false,
+    val profileImageUri: String? = null
+    //imagen de perfil, null por default, se puede cambiar y enlazar con el id de usuario
 )

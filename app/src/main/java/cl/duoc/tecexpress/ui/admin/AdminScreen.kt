@@ -11,6 +11,7 @@ import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.automirrored.filled.ExitToApp
 import androidx.compose.material.icons.filled.ImageNotSupported
+import androidx.compose.material.icons.filled.Menu
 import androidx.compose.material3.*
 import androidx.compose.runtime.*
 import androidx.compose.ui.Alignment
@@ -28,9 +29,11 @@ import cl.duoc.tecexpress.data.local.ServiceCategory
 import cl.duoc.tecexpress.data.local.UserEntity
 import cl.duoc.tecexpress.model.Service
 import cl.duoc.tecexpress.model.ServiceStatus
+import cl.duoc.tecexpress.ui.components.ConfirmationDialog
 import cl.duoc.tecexpress.viewmodel.AdminViewModel
 import cl.duoc.tecexpress.viewmodel.AuthViewModel
 import coil.compose.SubcomposeAsyncImage
+import kotlinx.coroutines.launch
 
 enum class AdminView { SERVICES, USERS }
 
@@ -39,7 +42,9 @@ enum class AdminView { SERVICES, USERS }
 fun AdminScreen(
     app: TecExpressApplication,
     authViewModel: AuthViewModel,
-    onLogout: () -> Unit
+    onLogout: () -> Unit,
+    onProfile: () -> Unit,
+    onAdminClick: () -> Unit
 ) {
     val viewModel: AdminViewModel = viewModel(factory = app.appContainer.viewModelFactory)
     val uiState by viewModel.uiState.collectAsState()
@@ -51,84 +56,133 @@ fun AdminScreen(
     var showDeleteDialog by remember { mutableStateOf<Service?>(null) }
     var serviceToUpdate by remember { mutableStateOf<Service?>(null) }
     var newStatusToUpdate by remember { mutableStateOf<ServiceStatus?>(null) }
+    var showLogoutDialog by remember { mutableStateOf(false) }
+    val drawerState = rememberDrawerState(initialValue = DrawerValue.Closed)
+    val scope = rememberCoroutineScope()
 
     if (showStatusDialog && serviceToUpdate != null && newStatusToUpdate != null) {
         ConfirmationDialog(
+            show = true,
             title = "Confirmar Cambio de Estado",
-            text = "¿Estás seguro de que quieres modificar el estado de este servicio?",
+            message = "¿Estás seguro de que quieres modificar el estado de este servicio?",
             onConfirm = {
                 viewModel.updateServiceStatus(serviceToUpdate!!, newStatusToUpdate!!)
                 showStatusDialog = false
             },
-            onDismiss = { showStatusDialog = false }
+            onDismiss = { showStatusDialog = false },
+            confirmButtonColor = Color(0xFF4A148C)
         )
     }
 
     showDeleteDialog?.let {
         ConfirmationDialog(
+            show = true,
             title = "Confirmar Eliminación",
-            text = "¿Estás seguro de que quieres eliminar este servicio? Esta acción no se puede deshacer.",
+            message = "¿Estás seguro de que quieres eliminar este servicio? Esta acción no se puede deshacer.",
             onConfirm = { viewModel.deleteService(it); showDeleteDialog = null },
-            onDismiss = { showDeleteDialog = null }
+            onDismiss = { showDeleteDialog = null },
+            confirmButtonColor = Color(0xFF4A148C)
         )
     }
+
+    ConfirmationDialog(
+        show = showLogoutDialog,
+        onDismiss = { showLogoutDialog = false },
+        onConfirm = {
+            showLogoutDialog = false
+            authViewModel.logout()
+            onLogout()
+        },
+        title = "¿Cerrar sesión?",
+        message = "Tu sesión se cerrará.",
+        confirmButtonColor = Color(0xFF4A148C)
+    )
+
 
     uiState.error?.let {
         ErrorDialog(error = it, onDismiss = { viewModel.clearError() })
     }
 
-    Box(modifier = Modifier.fillMaxSize()) {
-        Image(painter = painterResource(id = R.drawable.logo_init), contentDescription = "Background", modifier = Modifier.fillMaxSize().alpha(0.2f), contentScale = ContentScale.Crop)
-        Box(modifier = Modifier.fillMaxSize().background(Color(0xFF4A148C).copy(alpha = 0.3f)))
-        Scaffold(
-            containerColor = Color.Transparent,
-            topBar = {
-                TopAppBar(
-                    title = { Text("Panel de Administrador") },
-                    actions = {
-                        IconButton(onClick = {
-                            authViewModel.logout()
-                            onLogout()
-                        }) {
-                            Icon(
-                                imageVector = Icons.AutoMirrored.Filled.ExitToApp,
-                                contentDescription = "Cerrar Sesión",
-                                tint = MaterialTheme.colorScheme.primary
-                            )
-                        }
-                    },
-                    colors = TopAppBarDefaults.topAppBarColors(containerColor = Color.Transparent)
+    ModalNavigationDrawer(
+        drawerState = drawerState,
+        drawerContent = {
+            ModalDrawerSheet {
+                Spacer(modifier = Modifier.height(12.dp))
+                NavigationDrawerItem(
+                    label = { Text("Perfil") },
+                    selected = false,
+                    onClick = onProfile
+                )
+                NavigationDrawerItem(
+                    label = { Text("Admin") },
+                    selected = false,
+                    onClick = onAdminClick
+                )
+                Spacer(modifier = Modifier.weight(1f))
+                NavigationDrawerItem(
+                    label = { Text("Cerrar Sesión") },
+                    selected = false,
+                    onClick = { showLogoutDialog = true },
+                    icon = { Icon(Icons.AutoMirrored.Filled.ExitToApp, contentDescription = "Cerrar Sesión") }
                 )
             }
-        ) { paddingValues ->
-            Column(modifier = Modifier.fillMaxSize().padding(paddingValues).padding(16.dp)) {
-                Row(horizontalArrangement = Arrangement.spacedBy(8.dp)) {
-                    Button(onClick = { currentView = AdminView.SERVICES }) { Text("Ver Servicios") }
-                    Button(onClick = { currentView = AdminView.USERS }) { Text("Ver Usuarios") }
+        }
+    ) {
+        Box(modifier = Modifier.fillMaxSize()) {
+            Image(painter = painterResource(id = R.drawable.logo_init), contentDescription = "Background", modifier = Modifier.fillMaxSize().alpha(0.2f), contentScale = ContentScale.Crop)
+            Box(modifier = Modifier.fillMaxSize().background(Color(0xFF4A148C).copy(alpha = 0.3f)))
+            Scaffold(
+                containerColor = Color.Transparent,
+                topBar = {
+                    TopAppBar(
+                        title = { Text("Panel de Administrador") },
+                        navigationIcon = {
+                            IconButton(onClick = {
+                                scope.launch {
+                                    drawerState.apply {
+                                        if (isClosed) open() else close()
+                                    }
+                                }
+                            }) {
+                                Icon(
+                                    imageVector = Icons.Default.Menu,
+                                    contentDescription = "Menu"
+                                )
+                            }
+                        },
+                        colors = TopAppBarDefaults.topAppBarColors(containerColor = Color.Transparent)
+                    )
                 }
-                Spacer(modifier = Modifier.height(16.dp))
-
-                if (uiState.editingService != null) {
-                    CreateOrEditServiceForm(viewModel = viewModel)
-                } else if (currentView == AdminView.SERVICES) {
-                    Button(onClick = { viewModel.startEditing(Service(id = 0, serviceType = "", description = "", userId = 0L, price = 0.0, category = ServiceCategory.OTHER, status = ServiceStatus.PENDING)) }) {
-                        Text("Crear Nuevo Servicio")
+            ) { paddingValues ->
+                Column(modifier = Modifier.fillMaxSize().padding(paddingValues).padding(16.dp)) {
+                    Row(horizontalArrangement = Arrangement.spacedBy(8.dp)) {
+                        Button(onClick = { currentView = AdminView.SERVICES }) { Text("Ver Servicios") }
+                        Button(onClick = { currentView = AdminView.USERS }) { Text("Ver Usuarios") }
                     }
                     Spacer(modifier = Modifier.height(16.dp))
-                }
 
-                when (currentView) {
-                    AdminView.SERVICES -> ServiceList(
-                        services = services,
-                        viewModel = viewModel,
-                        onDeleteRequest = { showDeleteDialog = it },
-                        onStatusChangeRequested = { service, newStatus ->
-                            serviceToUpdate = service
-                            newStatusToUpdate = newStatus
-                            showStatusDialog = true
+                    if (uiState.editingService != null) {
+                        CreateOrEditServiceForm(viewModel = viewModel)
+                    } else if (currentView == AdminView.SERVICES) {
+                        Button(onClick = { viewModel.startEditing(Service(id = 0, serviceType = "", description = "", userId = 0L, price = 0.0, category = ServiceCategory.OTHER, status = ServiceStatus.PENDING)) }) {
+                            Text("Crear Nuevo Servicio")
                         }
-                    )
-                    AdminView.USERS -> UserList(users = users)
+                        Spacer(modifier = Modifier.height(16.dp))
+                    }
+
+                    when (currentView) {
+                        AdminView.SERVICES -> ServiceList(
+                            services = services,
+                            viewModel = viewModel,
+                            onDeleteRequest = { showDeleteDialog = it },
+                            onStatusChangeRequested = { service, newStatus ->
+                                serviceToUpdate = service
+                                newStatusToUpdate = newStatus
+                                showStatusDialog = true
+                            }
+                        )
+                        AdminView.USERS -> UserList(users = users)
+                    }
                 }
             }
         }
@@ -252,17 +306,6 @@ fun CreateOrEditServiceForm(viewModel: AdminViewModel) {
             Button(onClick = { viewModel.stopEditing() }) { Text("Cancelar") }
         }
     }
-}
-
-@Composable
-fun ConfirmationDialog(title: String, text: String, onConfirm: () -> Unit, onDismiss: () -> Unit) {
-    AlertDialog(
-        onDismissRequest = onDismiss,
-        title = { Text(title) },
-        text = { Text(text) },
-        confirmButton = { TextButton(onClick = onConfirm) { Text("Confirmar") } },
-        dismissButton = { TextButton(onClick = onDismiss) { Text("Cancelar") } }
-    )
 }
 
 @Composable

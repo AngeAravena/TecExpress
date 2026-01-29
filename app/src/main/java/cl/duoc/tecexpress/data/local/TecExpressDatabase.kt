@@ -19,7 +19,7 @@ class Converters {
     fun toCategory(value: String) = enumValueOf<ServiceCategory>(value)
 }
 
-@Database(entities = [ServiceEntity::class, UserEntity::class], version = 11, exportSchema = false)
+@Database(entities = [ServiceEntity::class, UserEntity::class], version = 12, exportSchema = false)
 @TypeConverters(Converters::class)
 abstract class TecExpressDatabase : RoomDatabase() {
 
